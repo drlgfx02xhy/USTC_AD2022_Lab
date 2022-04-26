@@ -48,9 +48,28 @@ Report for AD2022 Lab3
 
     Turn str and object to int or float. $\tag {1}$
 
+    ```python
+    # temporarily turn nan to -1 for type conversion
+    df.replace(' ', -1, inplace=True)
+    # turn column[3] to str
+    df.iloc[:, 3] = df.iloc[:, 3].astype(str)
+    # turn the q part to `int`
+    df.iloc[:, 7:231] = df.iloc[:, 7:231].astype(int)
+    # turn the v part to `float`
+    df.iloc[:, 231:-1] = df.iloc[:, 231:-1].astype(float)
+    # actually null values are ' ' (space), need to change to NaN
+    df.replace(-1, np.nan, inplace=True)
+    ```
+
 2. Meaningless data discard: 
 
     Drop columns with the same data which means they are unrelated to the classification result.
+
+    ```python
+    # actually, we can see from the codebook that columns[5:19] are unrelated to the target variable
+    # so we can drop them
+    df.drop(columns=df.columns[5:19], inplace=True)
+    ```
 
 3. Normalization of abnormal data:
 
@@ -58,9 +77,36 @@ Report for AD2022 Lab3
 
     And fill the data with the majority of that type of feature(mode number filling).
 
-3. Data standarlization: 
+    ```python
+    # process missing data which is xx9
+    # turn them into np.nan
+    max_list = []
+    for i in range(len(df.columns)):
+    	ele = df.iloc[:, i].max()
+    	max_list.append(ele)
+    for i in range(len(df.columns)):
+    	if max_list[i] in [9,99,98,998,999,9.0,99.0,98.0,998.0,999.0,95.0]:
+    		df.iloc[:, i].replace(max_list[i], np.nan, inplace=True)
+            
+    # search all the column name with null values
+    null_columns = df.columns[df.isnull().any()]
+    # count the number of null values in each column, see those who have more than 10% null value
+    df[null_columns].isnull().sum()>3000
+    # actually those who have more than 10% null value are not meaningless, we can neglect them
+    # fill the null values with the mode of the column
+    mode_dict = df[null_columns].mode().iloc[0].astype(int).to_dict()
+    df.fillna(mode_dict, inplace=True)
+    ```
+
+4. Data standarlization: 
 
     MinMaxscaler to take all the data in [0,1].
+
+    ```python
+    # use MinMaxScaler to normalize the data
+    df_scaled_np = MinMaxScaler().fit_transform(df)
+    df_scaled = pd.DataFrame(df_scaled_np, columns=df.columns)
+    ```
 
 4. Auxiliary task: 
 
@@ -68,7 +114,28 @@ Report for AD2022 Lab3
 
     For subsequently easy view and operation.
 
-    
+    ```python
+    # Below is to see the corresponding meaning of each columns and save to dicts,
+    # which will give great convenience when I want to refer the meaning of each feature.
+    cb = pd.read_excel('data/codebook.xlsx')
+    cb.NAME = cb.NAME.astype(str)
+    cb.drop(index = cb[cb.NAME=='nan'].index, inplace=True)
+    col = df.columns.to_numpy()
+    name = cb.NAME.to_numpy()
+    zai = []
+    for i in range(len(name)):
+        if name[i] in col:
+            zai.append(False)
+        else:
+            zai.append(True)
+    cb.drop(index = cb[zai].index, inplace=True)
+    # load cb's "NAME" and "VARLABEL" to a dict
+    cb_dict = cb.set_index('NAME').VARLABEL.to_dict()
+    # load cb_dict to "data/dictionary_cleaned.txt"
+    cb_dict_path = "data/dictionary_cleaned.txt"
+    f = open(cb_dict_path, 'w')
+    f.write(json.dumps(cb_dict, indent=0))
+    ```
 
 #### **Feature Classification Manually**
 
@@ -78,7 +145,7 @@ parent education: 11~20 `PRNT_EDU`
 
 study environment: 11 13~16 20 21 `STDY_EVNRMNT`
 
-life quality: 12 18 19 23-26 "n" 27-35 `LF_QLTY`
+life quality: 12 18 19 23-26  27-35 `LF_QLTY`
 
 parent care: 36-39 `PRNT_CR`
 
@@ -101,25 +168,76 @@ knowledge: 304-403 `KNLDG`
 #### **Create Tool Function**
 
 ```python
-def make_df(df, index_list, add_repeat = False)
+def make_df(df, index_list, add_repeat = False):
 """
-Select columns from `df` according to `index_list`, return a new df. If `add_repeat` == `True`, then the df will automatically add the `REPEAT` column from the PISA data.
+Select columns from `df` according to `index_list`, return a new df. If `add_repeat` == `True`, then the df will 		automatically add the `REPEAT` column from the PISA data.
 """
-def sum(df,name,mean = False)
+	df_new = pd.DataFrame()
+	for i in range(len(index_list)):
+		index = index_list[i]
+		if(type(index) == int):
+			col = df.columns[index]
+		else:
+			col = index
+		df_new[col] = df[col]
+	if(add_repeat):
+		df_new['REPEAT'] = df['REPEAT']
+	return df_new
+
+def sum(df,name,mean = False):
 """
 Calculate the sum of all features for each sample in `df` simply by add one by one, return a new_df with only one column whose name is`name`.
 """
-def sum_stdlz(map, df, name)
+	if(df.columns[-1] == 'REPEAT'):
+		df.drop(columns=['REPEAT'], inplace=True)
+	if(type(df) == pd.core.frame.DataFrame):
+		df = df.to_numpy()
+	long = len(df[0])
+	df = np.sum(df, axis=1)
+	if(mean):
+		df = df/long
+	df = pd.DataFrame(df, columns=[name])
+	return df
+
+def sum_stdlz(map, df, name):
 """
 Calculate the sum of all features for each sample in `df` according to the correlation of features revealed by the heatmap `map`, return a new_df with only one column whose name is`name`.
 """
-def draw_corr_map(df,method='pearson')
+	if(type(df) == pd.core.frame.DataFrame):
+		df = df.to_numpy()
+	scaler = MinMaxScaler()
+	pn = map.iloc[-2]
+	sign = map.iloc[-1][0]
+	for i in range(len(pn)-1):
+		if(i==0):
+			if(sign>0):
+				temp = df[:,i]
+			else:
+				temp = -df[:,i]
+		else:
+			if ((pn[i]>0 and sign > 0)or(pn[i]<0 and sign < 0)):
+				temp = temp + df[:,i]
+			else:
+				temp = temp - df[:,i]
+	df_new = scaler.fit_transform(temp.reshape(-1,1))
+	df_new_pd = pd.DataFrame(df_new).rename(columns={0: name})
+	return df_new_pd
+
+def draw_corr_map(df,method='pearson'):
 """
 Calculate the covariance between all the characteristic variables in `df`, get the covariance matrix, and plot the heatmap
 """
+	map = df.corr(method=method)
+	sns.heatmap(map, annot=True, cmap='coolwarm')
+	return map
+
+# draw different plot
+sns.violinplot
+sns.histplot
+sns.pieplot
 ```
 
-### Data Extraction and Rough Analysis
+### Data Extraction and Analysis
 
 #### PRNT_EDU(Parent Education)
 
@@ -295,8 +413,50 @@ Integrate all self-constructed features into a Dataframe. Count the covariance m
     	<p>Next, let's see the relationship between some features and the target `REPEAT`</p>
 	</div>
     <div style="clear:both"></div></div>
-
 The data were discretized and the ratio between the number of newly increased repeaters in each small interval and the total number of repeaters and non-repeaters in that interval was counted, which is the repeater rate in that small interval, and from that the relationship curve between the repeater rate and the characteristic take values was drawn. Smoothing was performed with quadratic interpolation.
+
+```python
+# discretize the data
+def discrete(df, cond_col, step, tgt_col = 'REPEAT'):
+	# min, max = df[cond_col].describe()[3], df[cond_col].describe()[7]
+	sum = []
+	cur_sum = []
+	group = int(1/step)
+	for point in np.linspace(0, 1, group+1):
+		RPT, total = stat(df, cond_col, point, tgt_col, step)
+		cur_sum.append(RPT)
+		sum.append(total)
+	cur_sum = np.array(cur_sum)
+	sum = np.array(sum)
+	return cur_sum, sum
+
+# count the total number in the group and the number of repeat in the group
+def stat(df, cond_col, base, tgt_col, dur):
+	sum = 0.01
+	cur_sum = 0
+	index = df.index[(base <= df[cond_col]) & (df[cond_col] < base + dur)]
+	sub_df = pd.concat([df[cond_col][index], df[tgt_col][index]], axis=1)
+	for i in range(sub_df.shape[0]):
+		sum += 1
+		if sub_df[tgt_col].iloc[i] == 1:
+			cur_sum += 1
+	return cur_sum, sum
+
+# draw the plot
+def plt_discrete(df, cond_col, step, tgt_col = 'REPEAT'):
+	cur_sum, sum= discrete(df, cond_col, step, tgt_col)
+	x = np.linspace(0, 1, int(1/step)+1)
+	y = cur_sum/sum
+	itp = interpolate.CubicSpline(x, y) # smooth
+	xnew = np.linspace(0, 1, 100)
+	ynew = itp(xnew)
+	plt.plot(xnew, ynew)
+	plt.xlabel(cond_col)
+	plt.ylabel('probability')
+	plt.show()
+```
+
+
 
 <div style="width:1000px;margin:0;padding:0">
     <div style="float:left;width:500px;"><img src="pics/pe_l.png"></div>
@@ -402,16 +562,16 @@ anaconda
 
 Data Preprocess : 
 
-	1. Data Cleaning
-	1. Data Integration
-	1. Data Transformation
-	1. Data Statute
+1. Data Cleaning
+2. Data Integration
+3. Data Transformation
+4. Data Statute
 
 Feature Engineering  :
 
- 	1. Feature Extraction
- 	2. Feature Design
- 	3. Feature Construction
+1. Feature Extraction
+2. Feature Design
+3. Feature Construction
 
 Covers Prof. QiLiu's AD2022 PPT slides Chapter2 :`Data Preprocess`and`Feature Engineer`.
 
@@ -419,16 +579,14 @@ Covers Prof. QiLiu's AD2022 PPT slides Chapter2 :`Data Preprocess`and`Feature En
 
 ## Conclusion
 
-Lab3 spend me much more than 8h... About 3*8h... Sigh...
+Lab3 costs me much more than 8h... About 3*8h... Sigh...
 
 But I have learned a lot:
 
- 	1. Feature Engineering
- 	2. Convenience of Jupyter for showing and plotting
- 	3. Seaborn Plotting of different kinds of excellent figures
- 	4. CSS style design for prettier Markdown PDF 
-
-Tired, but Happy for AD lab! 
+1. Feature Engineering
+2. Convenience of Jupyter for showing and plotting
+3. Seaborn Plotting of different kinds of excellent figures
+4. CSS style design for prettier Markdown PDF 
 
 
 
