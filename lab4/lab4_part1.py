@@ -57,7 +57,7 @@ class MLP(object):
   
 		# 链式法则
 		d_L_d_y_hat = -y/y_hat + (np.ones_like(y)-y)/(np.ones_like(y)-y_hat) # (bsz, n_out)
-		d_y_hat_d_o = self.sigmoid_derivative(o) # (bsz, n_out)
+		d_y_hat_d_o = self.sigmoid_derivative(y_hat) # (bsz, n_out)
 		d_o_d_w = x # (bsz, n_in)
 		d_o_d_b = np.ones((bsz, 1)) # (bsz, 1)
 	
@@ -82,7 +82,7 @@ class MLP(object):
 	def train_model(self):
 		for i in range(self.epoch):
 			self.backward(self.train_data, self.train_label)
-			if i%20 == 0:
+			if i%50 == 0:
 				accs = self.test_model(self.test_data, self.test_label)
 				print('epoch: %d, accs: %f' % (i, accs))
 
@@ -94,7 +94,7 @@ def main():
 	for i in range(5):
 		print('part: %d' % (i+1))
 		train, test = split_train_test(data_part, i)
-		model = MLP(train, test, train.shape[1]-1, 1, 0.5, 2000)
+		model = MLP(train, test, train.shape[1]-1, 1, 0.1, 5001)
 		model.train_model()
 		print('\n\n')
   
