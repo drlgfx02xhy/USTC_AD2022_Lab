@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import lightgbm as lgb
 from sklearn.metrics import mean_squared_error
-from defaults import default_config
+from defaults_3 import default_config
 import os
 
 def get_data():
@@ -26,10 +26,11 @@ def get_config(config_file):
     'boosting_type': 'gbdt',  # 设置提升类型
     'objective': 'regression',  # 目标函数
     'metric': 'l2',  # 评估函数
-    'num_leaves': 31,  # 叶子节点数
+	'learning_rate': 0.01,
+	'num_leaves': 31,  # 叶子节点数
     'verbose': -1  # <0 显示致命的, =0 显示错误 (警告), >0 显示信息
 	}
 	SEARCH_params = default_config()
-	SEARCH_params.merge_from_file(os.path.join('./config', config_file))
+	SEARCH_params.merge_from_file(os.path.join('./config_3', config_file))
 	params = {**FIXED_params, **SEARCH_params}
 	return params

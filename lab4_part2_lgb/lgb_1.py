@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import lightgbm as lgb
 from sklearn.metrics import mean_squared_error
-from defaults import default_config
+from defaults_1 import default_config
 import os
 
 def get_data():
@@ -30,6 +30,6 @@ def get_config(config_file):
     'verbose': -1  # <0 显示致命的, =0 显示错误 (警告), >0 显示信息
 	}
 	SEARCH_params = default_config()
-	SEARCH_params.merge_from_file(os.path.join('./add_config', config_file))
+	SEARCH_params.merge_from_file(os.path.join('./config_1', config_file))
 	params = {**FIXED_params, **SEARCH_params}
 	return params

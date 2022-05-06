@@ -11,8 +11,23 @@ RandomForest: 1552 超级慢
 Ridge: 1345
 SVM: 1647
 
-Adaboost调参：
-1. loss='square',n_estimators=2000,learning_rate=0.1 : 
+lightgbm包括了集成算法和决策树，故相关方法不再调参，直接在lightgbm上进行调参
 
-Bagging调参：
-1. n_estimators=100,max_samples=1.0 :
+下面尝试对LinearReg，MLP，KNN，Lasso，Ridge进行调参
+1. LinearReg，无参可调
+2. MLP:
+	hidden_layer_sizes=(128,8),activation='relu',solver='adam',batch_size=1024,learning_rate_init=0.1,max_iter=10000000
+	狂调一通
+	综合下来在1300左右
+3. KNN:
+	n_neighbors=10
+	取前五个影响因素最大的特征
+	综合下来在1800左右
+4. Lasso:
+	alpha=0.0001
+	狂调一通
+	综合下来在1600左右
+5. Ridge:
+	alpha=0.0001
+	狂调一通
+	综合下来在1300左右

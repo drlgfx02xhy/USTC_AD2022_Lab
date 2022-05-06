@@ -3,12 +3,12 @@ import numpy as np
 import lightgbm as lgb
 from lightgbm import early_stopping,log_evaluation
 from sklearn.metrics import mean_squared_error
-from defaults import default_config
+from defaults_2 import default_config
 import os
-from add_lgb import get_data, get_config
+from lgb_2 import get_data, get_config
 
 
-dir_path = './add_config'
+dir_path = './config_2'
 save_dir = './lgbmodels'
 
 file_list = [f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f))]
@@ -29,6 +29,6 @@ for filename in file_list:
 	predictions = my_model.predict(test_x, num_iteration=my_model.best_iteration)
 	print('\n')
 	# log results in '/log/file.txt'
-	with open('./log/add_result.txt', 'a') as f:
+	with open('./log/result_2.txt', 'a') as f:
 		f.write('Config : {}'.format(file))
 		f.write('    Mean Squared Error : {}\n'.format(mean_squared_error(predictions, test_label)))
