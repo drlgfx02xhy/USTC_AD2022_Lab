@@ -1,5 +1,4 @@
 import numpy as np
-import pdb
 
 def cross_validation(data, k):
 	# split the data into k parts
@@ -45,8 +44,8 @@ class MLP(object):
 
 	def judge(self, y_hat, y):
 		"""
-		if y_hat > 0.5(repeat=1) return positive, else return negative
-		create a function to judge whether the prediction is correct
+		if (y_hat > 0.5 and y = 1) or (y_hat < 0.5 and y = 0),then return positive: right predict!
+        create a function to judge whether the prediction is correct
 		"""
 		s = (y_hat - 0.5) * (y - 0.5)
 		return s
@@ -82,7 +81,7 @@ class MLP(object):
 	def train_model(self):
 		for i in range(self.epoch):
 			self.backward(self.train_data, self.train_label)
-			if i%50 == 0:
+			if i!=0 and i%5000 == 0:
 				accs = self.test_model(self.test_data, self.test_label)
 				print('epoch: %d, accs: %f' % (i, accs))
 
