@@ -10,3 +10,9 @@ MLP: 1661
 RandomForest: 1552 超级慢
 Ridge: 1345
 SVM: 1647
+
+Adaboost调参：
+1. loss='square',n_estimators=2000,learning_rate=0.1 : 
+
+Bagging调参：
+1. n_estimators=100,max_samples=1.0 :

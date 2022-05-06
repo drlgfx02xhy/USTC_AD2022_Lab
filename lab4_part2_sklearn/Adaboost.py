@@ -10,7 +10,7 @@ a = data[:,:-1]
 b = data[:,-1]
 stl_b = sclaer.fit_transform(b.reshape(-1,1))
 x_train,x_test,y_train,y_test = train_test_split(a,stl_b,test_size=0.2)
-clf = AdaBoostRegressor()
+clf = AdaBoostRegressor(loss='square',n_estimators=2000,learning_rate=0.1)
 rf = clf.fit (x_train, y_train.ravel())
 stl_y_pred = rf.predict(x_test)
 y_pred = sclaer.inverse_transform(stl_y_pred.reshape(-1,1))
