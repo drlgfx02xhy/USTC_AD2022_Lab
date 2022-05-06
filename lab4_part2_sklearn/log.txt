@@ -1,0 +1,12 @@
+Adaboost: 1576
+Bagging: 1654
+DecisionTree: 3268
+ExtraTree: 3317
+GradientBoosting:1373 超级慢
+KNN: 2682
+Lasso: 6853
+LinearReg: 1335
+MLP: 1661
+RandomForest: 1552 超级慢
+Ridge: 1345
+SVM: 1647
