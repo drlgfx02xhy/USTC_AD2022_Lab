@@ -1,14 +1,14 @@
 import os
 import lightgbm as lgb
 
-def get_bestmodelpath(k):
-	log_path = './log/result_3.txt'
+def get_best_cfg(k):
+	log_path = './log/kfold.txt'
 	with open(log_path, 'r') as f:
 		lines = f.readlines()
 
 	mse_list = []
 	for i in range(len(lines)):
-		mse = float(lines[i][45:-1])
+		mse = float(lines[i][45:54])
 		mse_list.append(mse)
 	mse_list.sort()
 
@@ -16,8 +16,8 @@ def get_bestmodelpath(k):
 	for i in range(len(lines)):
 		for j in range(len(lines)):
 			cur = lines[j]
-			if mse_list[i] == float(cur[45:-1]):
-				model_file.append('./lgbmodels/' + cur[9:20])
+			if mse_list[i] == float(cur[45:54]):
+				model_file.append(cur[9:20] + '.yaml')
      
 	return model_file[:k]
 

@@ -2,18 +2,16 @@ Adaboost: 1576
 Bagging: 1654
 DecisionTree: 3268
 ExtraTree: 3317
-GradientBoosting:1373 超级慢
+GradientBoosting:1373
 KNN: 2682
 Lasso: 6853
 LinearReg: 1335
 MLP: 1661
-RandomForest: 1552 超级慢
+RandomForest: 1552
 Ridge: 1345
 SVM: 1647
 
-lightgbm包括了集成算法和决策树，故相关方法不再调参，直接在lightgbm上进行调参
-
-下面尝试对LinearReg，MLP，KNN，Lasso，Ridge进行调参
+尝试对LinearReg，MLP，KNN，Lasso，Ridge进行调参
 1. LinearReg，无参可调
 2. MLP:
 	hidden_layer_sizes=(128,8),activation='relu',solver='adam',batch_size=1024,learning_rate_init=0.1,max_iter=10000000
